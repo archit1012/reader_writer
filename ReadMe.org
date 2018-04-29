@@ -1,0 +1,64 @@
+
+
+There are total 3 folders inside attachment. Client is same for all. airport.csv is file which is I am using for testing and file name is hardcoded in source code
+1. M1_1 - Module 1 Basic
+	Single process multi thread, multiple client can connect , It is uses busy waiting GET and PUT both will be served sequentially
+
+2. M1_2 - Module 1 Working
+	Single process multi thread, multiple client can connect , Uses unnamed semaphore Only one PUT and multiple GET if there is no PUT 
+
+3. M2_1 - Module 2 Basic
+	Multi Process, Multi threaded. Uses named semaphore Only one PUT and multiple GET if there is no PUT 
+
+	Remaining to implement : Allowing concurrent write if key in PUT are different is remaining.
+
+	Not sure about correct solution, but one way is 
+	1. Store all key value pair in hashMap [ If there are too many PUT we should not keep looping large file just to verify Value]
+	2. serve all GET request from hashMap if it is not locked by PUT (No need to hit file for any GET request)
+	3. For all PUT check KEY in hashMap concurrently 
+		if VALUE for KEY found different , Lock hashMap until it finish update to hashMap and same information in file,
+		Once file is updated , Unlock hashMap, Wake up all threads
+
+
+* Compilation Instruction is same for each folder
+
+	- Compiling Server (Ignore Warning)
+		archit@archit-pc:~/socket/Test/M1_2$ g++ server_M1_2.cpp -pthread -o server
+		server_M1_2.cpp: In function ‘int main(int, char**)’:
+		server_M1_2.cpp:211:76: warning: cast to pointer from integer of different size [-Wint-to-pointer-cast]
+	   	rc = pthread_create( &threads[thread_no] , NULL ,  serveRequest ,(void *)newsockfd ) ;
+
+	- Compiling Client                                                                          
+		archit@archit-pc:~/socket/Test/M1_2$ g++ client.cpp -o client
+		archit@archit-pc:~/socket/Test/M1_2$
+
+* Running Program Instruction
+1. M1_1 and M2_2
+
+	Server	
+		archit@archit-pc:~/socket/Test/M1_2$ ./server 1 8000
+		listening for clients request on port 8000
+
+	Client (run same on multiple terminal)
+		archit@archit-pc:~/socket/Test/M1_2$ ./client localhost 8000
+		Enter # to end the connection
+
+	Go through the images for execution instructino
+	1.png -  overall operation
+	2.png - shows created process
+	3_top-p-h_output.png - shows thread created by connection - 3 thread for serving 3 client and 1 parent thread - total 4
+	4_end_con.png - connection termination
+
+2. M2_1
+
+	Everything is same as above , except we need to initiate client on different port
+	like 
+	archit@archit-pc:~/socket/Test/M2_1$ ./client localhost 8000  
+	archit@archit-pc:~/socket/Test/M2_1$ ./client localhost 8001 
+	
+	and so on... and same command in different  terminal to create multiple thread for same port
+
+	Please go through the snapshot added in folder
+
+
+
